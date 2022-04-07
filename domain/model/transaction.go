@@ -4,6 +4,7 @@ import (
 	"time"
 	uuid "github.com/satori/go.uuid"
 	"github.com/asaskevich/govalidator"
+	"errors"
 )
 
 const (
@@ -24,13 +25,15 @@ type Transactions struct {
 }
 
 type Transaction struct {
-	Base				`valid:"required"`
-	AccountFrom					*Account	`valid:"-"`	
-	Amount 							float64		`json:"amount" valid:"notnull"`
-	PixKeyTo 						*PixKey		`valid:"-"`
-	Status							string		`json:"status" valid:"notnull"`
-	Description					string		`json:"description" valid:"notnull"`
-	CancelDescrioption	string		`json: "cancel_description" valid:"-"`
+	Base              `valid:"required"`
+	AccountFrom       *Account `valid:"-"`
+	AccountFromID     string   `gorm:"column:account_from_id;type:uuid;" valid:"notnull"`
+	Amount            float64  `json:"amount" gorm:"type:float" valid:"notnull"`
+	PixKeyTo          *PixKey  `valid:"-"`
+	PixKeyIdTo        string   `gorm:"column:pix_key_id_to;type:uuid;" valid:"notnull"`
+	Status            string   `json:"status" gorm:"type:varchar(20)" valid:"notnull"`
+	Description       string   `json:"description" gorm:"type:varchar(255)" valid:"-"`
+	CancelDescription string   `json:"cancel_description" gorm:"type:varchar(255)" valid:"-"`
 }
 
 func (t *Transaction) isValid() error {
@@ -40,7 +43,7 @@ func (t *Transaction) isValid() error {
 		return errors.New("them amoun must be greater than 0")
 	}
 
-	if t.Status != TransactionPending && t.Status !== TransactionCompleted && t.Status !== TransactionError {
+	if t.Status != TransactionPending && t.Status != TransactionCompleted && t.Status != TransactionError {
 		return errors.New("invalid transacion status")
 	}
 
